@@ -91,7 +91,7 @@ static const char *echo(const char *s)
 
 		s++;
 		if (*s == 'c') {
-			return NULL;
+			exit(errors);
 		}
 
 		if (*s == '0' || !isdigit(*s)) {
@@ -271,10 +271,6 @@ int printf_main(int argc, char *argv[])
 			} else {
 				putchar(*format);
 				format++;
-			}
-
-			if (format == NULL) {
-				break;
 			}
 		}
 
