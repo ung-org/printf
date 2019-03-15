@@ -165,7 +165,11 @@ static const char *convert(const char *conv, const char *operand)
 			diagnose("overflow converting \"%s\"", operand);
 		}
 		if (*end != '\0') {
-			diagnose("\"%s\" not completely converted", operand);
+			if (end == operand) {
+				diagnose("\"%s\" expected numeric value", operand);
+			} else {
+				diagnose("\"%s\" not completely converted", operand);
+			}
 		}
 		sprintf(fconv, "%c", *conv);
 		strcat(oconv, fconv);
@@ -180,7 +184,11 @@ static const char *convert(const char *conv, const char *operand)
 		} else {
 			i = strtoll(operand, &end, 0);
 			if (*end != '\0') {
-				diagnose("\"%s\" not completely converted", operand);
+				if (end == operand) {
+					diagnose("\"%s\" expected numeric value", operand);
+				} else {
+					diagnose("\"%s\" not completely converted", operand);
+				}
 			}
 		}
 
@@ -203,7 +211,11 @@ static const char *convert(const char *conv, const char *operand)
 		} else {
 			u = strtoull(operand, &end, 0);
 			if (errno != 0) {
-				diagnose("overflow converting \"%s\"", operand);
+				if (end == operand) {
+					diagnose("\"%s\" expected numeric value", operand);
+				} else {
+					diagnose("overflow converting \"%s\"", operand);
+				}
 			}
 		}
 
