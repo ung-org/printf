@@ -81,44 +81,31 @@ static const char *escape(const char *esc, char *out)
 	return esc + 1;
 }
 
-static char *echo(const char *s)
+static int echo(const char *s, char *out)
 {
-	static char *buf = NULL;
-	static size_t blen = 0;
-
-	size_t slen = strlen(s);
-	if (slen > blen) {
-		blen = slen;
-		buf = realloc(buf, blen);
-		if (buf == NULL) {
-			diagnose("%s", strerror(errno));
-			exit(1);
-		}
-	}
-	
 	size_t i = 0;
 	while (*s) {
 		if (*s != '\\') {
-			buf[i++] = (*s++);
+			out[i++] = (*s++);
 			continue;
 		}
 
 		s++;
 		if (*s == 'c') {
-			exit(errors);
+			return 1;
 		}
 
 		if (*s == '0' || !isdigit(*s)) {
 			char c = '\0';
 			s = escape(s + 1, &c);
-			buf[i++] = (c);
+			out[i++] = (c);
 		} else {
 			diagnose("unknown escape \"\\%c\"", *s);
 			s++;
 		}
 	}
 
-	return buf;
+	return 0;
 }
 
 static const char *convert(const char *conv, const char *operand)
@@ -156,8 +143,15 @@ static const char *convert(const char *conv, const char *operand)
 	/* conversion specifier */
 	switch (*conv) {
 	case 'b':
-		strcat(oconv, "s");
-		printf(oconv, echo(operand));
+		{
+			char ebuf[strlen(operand) + 1];
+			int quit = echo(operand, ebuf);
+			strcat(oconv, "s");
+			printf(oconv, ebuf);
+			if (quit) {
+				exit(errors);
+			}
+		}
 		break;
 
 	case 's':
@@ -308,7 +302,12 @@ int printf_main(int argc, char *argv[])
 int echo_main(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
-		printf("%s", echo(argv[i]));
+		char ebuf[strlen(argv[i]) + 1];
+		int quit = echo(argv[i], ebuf);
+		printf("%s", ebuf);
+		if (quit) {
+			return(errors);
+		}
 		putchar(i == argc - 1 ? '\n' : ' ');
 	}
 	return errors;
