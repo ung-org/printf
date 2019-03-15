@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 700
 #include <errno.h>
 #include <ctype.h>
+#include <libgen.h>
 #include <locale.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -9,11 +10,12 @@
 #include <unistd.h>
 
 static int errors = 0;
+static const char *progname = "printf";
 
 static void diagnose(const char *fmt, ...)
 {
 	char ofmt[strlen(fmt) + 10];
-	sprintf(ofmt, "printf: %s\n", fmt);
+	sprintf(ofmt, "%s: %s\n", progname, fmt);
 
 	va_list ap;
 	va_start(ap, fmt);
@@ -93,7 +95,7 @@ static const char *echo(const char *s)
 		}
 
 		if (*s == '0' || !isdigit(*s)) {
-			s = escape(s);
+			s = escape(s + 1);
 		} else {
 			diagnose("unknown escape \"\\%c\"", *s);
 			s++;
@@ -222,7 +224,7 @@ static const char *convert(const char *conv, const char *operand)
 	return conv + 1;
 }
 
-int main(int argc, char *argv[])
+int printf_main(int argc, char *argv[])
 {
 	setlocale(LC_ALL, "");
 
@@ -272,4 +274,23 @@ int main(int argc, char *argv[])
 	} while (operand);
 
 	return errors;
+}
+
+int echo_main(int argc, char *argv[])
+{
+	for (int i = 1; i < argc; i++) {
+		echo(argv[i]);
+		putchar(i == argc - 1 ? '\n' : ' ');
+	}
+	return errors;
+}
+
+int main(int argc, char *argv[])
+{
+	if (!strcmp(basename(argv[0]), "echo")) {
+		progname = "echo";
+		return echo_main(argc, argv);
+	}
+
+	return printf_main(argc, argv);
 }
