@@ -139,6 +139,7 @@ static const char *convert(const char *conv, const char *operand)
 	/* conversion specifier */
 	switch (*conv) {
 	case 'b':
+		/* TODO: print to string, then fallthru */
 		return echo(operand);
 
 	case 's':
