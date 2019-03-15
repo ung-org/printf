@@ -81,11 +81,25 @@ static const char *escape(const char *esc, char *out)
 	return esc + 1;
 }
 
-static const char *echo(const char *s)
+static char *echo(const char *s)
 {
+	static char *buf = NULL;
+	static size_t blen = 0;
+
+	size_t slen = strlen(s);
+	if (slen > blen) {
+		blen = slen;
+		buf = realloc(buf, blen);
+		if (buf == NULL) {
+			diagnose("%s", strerror(errno));
+			exit(1);
+		}
+	}
+	
+	size_t i = 0;
 	while (*s) {
 		if (*s != '\\') {
-			putchar(*s++);
+			buf[i++] = (*s++);
 			continue;
 		}
 
@@ -97,13 +111,14 @@ static const char *echo(const char *s)
 		if (*s == '0' || !isdigit(*s)) {
 			char c = '\0';
 			s = escape(s + 1, &c);
-			putchar(c);
+			buf[i++] = (c);
 		} else {
 			diagnose("unknown escape \"\\%c\"", *s);
 			s++;
 		}
 	}
-	return s;
+
+	return buf;
 }
 
 static const char *convert(const char *conv, const char *operand)
@@ -141,8 +156,9 @@ static const char *convert(const char *conv, const char *operand)
 	/* conversion specifier */
 	switch (*conv) {
 	case 'b':
-		/* TODO: print to string, then fallthru */
-		return echo(operand);
+		strcat(oconv, "s");
+		printf(oconv, echo(operand));
+		break;
 
 	case 's':
 		strcat(oconv, "s");
@@ -292,7 +308,7 @@ int printf_main(int argc, char *argv[])
 int echo_main(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
-		echo(argv[i]);
+		printf("%s", echo(argv[i]));
 		putchar(i == argc - 1 ? '\n' : ' ');
 	}
 	return errors;
