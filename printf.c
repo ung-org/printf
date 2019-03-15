@@ -25,7 +25,7 @@ static void diagnose(const char *fmt, ...)
 	errors = 1;
 }
 
-static const char *escape(const char *esc)
+static const char *escape(const char *esc, char *out)
 {
 	if (isdigit(*esc)) {
 		char oct[4] = {0};
@@ -37,41 +37,41 @@ static const char *escape(const char *esc)
 			oct[2] = *esc++;
 		}
 
-		putchar(strtol(oct, NULL, 8));
+		*out = (char)strtol(oct, NULL, 8);
 		return esc;
 	}
 
 	switch (*esc) {
 	case '\\':
-		putchar('\\');
+		*out = '\\';
 		break;
 
 	case 'a':
-		putchar('\a');
+		*out = '\a';
 		break;
 
 	case 'b':
-		putchar('\b');
+		*out = '\b';
 		break;
 
 	case 'f':
-		putchar('\f');
+		*out = '\f';
 		break;
 
 	case 'n':
-		putchar('\n');
+		*out = '\n';
 		break;
 
 	case 'r':
-		putchar('\r');
+		*out = '\r';
 		break;
 
 	case 't':
-		putchar('\t');
+		*out = '\t';
 		break;
 
 	case 'v':
-		putchar('\v');
+		*out = '\v';
 		break;
 
 	default:
@@ -95,7 +95,9 @@ static const char *echo(const char *s)
 		}
 
 		if (*s == '0' || !isdigit(*s)) {
-			s = escape(s + 1);
+			char c = '\0';
+			s = escape(s + 1, &c);
+			putchar(c);
 		} else {
 			diagnose("unknown escape \"\\%c\"", *s);
 			s++;
@@ -267,7 +269,9 @@ int printf_main(int argc, char *argv[])
 					}
 				}
 			} else if (*format == '\\') {
-				format = escape(format + 1);
+				char c = '\0';
+				format = escape(format + 1, &c);
+				putchar(c);
 			} else {
 				putchar(*format);
 				format++;
