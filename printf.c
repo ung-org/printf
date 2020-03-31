@@ -303,10 +303,11 @@ int echo_main(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
 		char ebuf[strlen(argv[i]) + 1];
+		memset(ebuf, '\0', sizeof(ebuf));
 		int quit = echo(argv[i], ebuf);
 		printf("%s", ebuf);
 		if (quit) {
-			return(errors);
+			return errors;
 		}
 		putchar(i == argc - 1 ? '\n' : ' ');
 	}
